@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бесплатный подбор авто</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* ======================================= */
+        /* CSS СТИЛИ ДЛЯ ИМИТАЦИИ ИНТЕРФЕЙСА TELEGRAM */
+        /* ======================================= */
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            /* Используем переменные Telegram для цвета фона */
+            background-color: var(--tg-theme-bg-color, #fff); 
+            color: var(--tg-theme-text-color, #000);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        /* Карточки с формой */
+        .card {
+            background-color: var(--tg-theme-secondary-bg-color, #f4f4f5);
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Заголовок шага */
+        h2 {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--tg-theme-text-color, #000);
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        /* Поля ввода */
+        input[type="text"], input[type="tel"], input[type="number"] {
+            width: 100%;
+            padding: 12px 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            /* Имитация стиля полей Telegram */
+            background-color: var(--tg-theme-bg-color, #fff); 
+            color: var(--tg-theme-text-color, #000);
+            outline: none;
+        }
+        
+        input[type="tel"] {
+            /* Убедимся, что на мобильных устройствах сразу появляется цифровая клавиатура */
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        /* Кнопки выбора (как в Mini App) */
+        .choice-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid var(--tg-theme-hint-color, #999);
+            border-radius: 8px;
+            background-color: transparent;
+            color: var(--tg-theme-text-color, #000);
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+        }
+
+        .choice-button.selected {
+            /* Цвет выбранной кнопки - акцентный цвет Telegram */
+            background-color: var(--tg-theme-button-color, #50a3ee); 
+            color: var(--tg-theme-button-text-color, #fff);
+            border-color: var(--tg-theme-button-color, #50a3ee);
+        }
+
+        .choice-button:not(.selected):hover {
+            opacity: 0.8;
+        }
+        
+        /* Стилизация для прогресса */
+        .progress-bar {
+            height: 5px;
+            background-color: var(--tg-theme-secondary-bg-color, #e0e0e0);
+            border-radius: 2px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-indicator {
+            height: 100%;
+            width: 0%;
+            background-color: var(--tg-theme-button-color, #50a3ee);
+            transition: width 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="progress-bar">
+        <div class="progress-indicator" id="progressIndicator"></div>
+    </div>
+    
+    <form id="carForm">
+        <div class="card form-step" data-step="1">
+            <h2>1/5. Какой автомобиль Вас интересует?</h2>
+            <button type="button" class="choice-button" data-value="Новый">🚗 Новый (из Китая)</button>
+            <button type="button" class="choice-button" data-value="С пробегом">⚙️ С пробегом</button>
+            <button type="button" class="choice-button" data-value="Неважно">🤷‍♀️ Неважно</button>
+            <input type="hidden" name="Тип авто" id="carType" required>
+        </div>
+
+        <div class="card form-step" data-step="2" style="display:none;">
+            <h2>2/5. Укажите марку и модель авто</h2>
+            <p style="color: var(--tg-theme-hint-color, #999); font-size: 0.9em;">Например: Toyota Camry, BYD Song Plus</p>
+            <input type="text" name="Марка/Модель" id="carModel" placeholder="Марка/Модель" required>
+        </div>
+
+        <div class="card form-step" data-step="3" style="display:none;">
+            <h2>3/5. Какой год выпуска Вы рассматриваете?</h2>
+            <input type="number" name="Год выпуска" id="carYear" placeholder="2020 (или укажите диапазон)" min="1900" max="2050" required>
+        </div>
+
+        <div class="card form-step" data-step="4" style="display:none;">
+            <h2>4/5. Как Вас зовут?</h2>
+            <input type="text" name="Имя" id="clientName" placeholder="Ваше Имя" required>
+        </div>
+
+        <div class="card form-step" data-step="5" style="display:none;">
+            <h2>5/5. Ваш номер телефона</h2>
+            <p style="color: var(--tg-theme-hint-color, #999); font-size: 0.9em;">Мы используем его, чтобы связаться с Вами.</p>
+            <input type="tel" name="Телефон" id="clientPhone" placeholder="+7 (___) ___-__-__" required>
+        </div>
+    </form>
+</div>
+
+<script>
+    // =======================================
+    // JAVASCRIPT ЛОГИКА ДЛЯ MINI APP
+    // =======================================
+    
+    // Инициализация Telegram Web App
+    const Telegram = window.Telegram.WebApp;
+    Telegram.ready();
+    Telegram.expand(); // Расширяем приложение на весь экран
+    
+    const formSteps = document.querySelectorAll('.form-step');
+    const progressIndicator = document.getElementById('progressIndicator');
+    let currentStep = 1;
+    const totalSteps = formSteps.length;
+
+    // ----------------------------------------
+    // УПРАВЛЕНИЕ КНОПКАМИ TELEGRAM (MainButton)
+    // ----------------------------------------
+
+    function updateMainButton(text, isVisible, isActive) {
+        Telegram.MainButton.setText(text);
+        if (isVisible) {
+            Telegram.MainButton.show();
+        } else {
+            Telegram.MainButton.hide();
+        }
+        if (isActive) {
+            Telegram.MainButton.enable();
+        } else {
+            Telegram.MainButton.disable();
+        }
+    }
+
+    // ----------------------------------------
+    // ОБНОВЛЕНИЕ ИНТЕРФЕЙСА (ШАГ, КНОПКА)
+    // ----------------------------------------
+
+    function updateUI() {
+        // Обновляем индикатор прогресса
+        progressIndicator.style.width = `${(currentStep / totalSteps) * 100}%`;
+
+        // Показываем/скрываем шаги
+        formSteps.forEach(step => {
+            if (parseInt(step.dataset.step) === currentStep) {
+                step.style.display = 'block';
+            } else {
+                step.style.display = 'none';
+            }
+        });
+        
+        // Обновляем главную кнопку Telegram
+        const isLastStep = currentStep === totalSteps;
+        const buttonText = isLastStep ? '✅ Отправить заявку' : 'Далее';
+        updateMainButton(buttonText, true, checkStepValidity());
+    }
+    
+    // ----------------------------------------
+    // ПРОВЕРКА ВАЛИДНОСТИ ТЕКУЩЕГО ШАГА
+    // ----------------------------------------
+
+    function checkStepValidity() {
+        const currentStepElement = document.querySelector(`.form-step[data-step="${currentStep}"]`);
+        
+        switch (currentStep) {
+            case 1: // Выбор кнопки
+                return !!document.getElementById('carType').value;
+            case 2: // Марка/Модель (текст)
+                return !!document.getElementById('carModel').value.trim();
+            case 3: // Год выпуска (число)
+                return !!document.getElementById('carYear').value.trim();
+            case 4: // Имя (текст)
+                return !!document.getElementById('clientName').value.trim();
+            case 5: // Телефон (тел.)
+                // Базовая проверка, что поле не пустое
+                return !!document.getElementById('clientPhone').value.trim();
+            default:
+                return false;
+        }
+    }
+    
+    // ----------------------------------------
+    // ОБРАБОТКА НАЖАТИЯ КНОПКИ ВЫБОРА (ШАГ 1)
+    // ----------------------------------------
+
+    document.querySelectorAll('.choice-button').forEach(button => {
+        button.addEventListener('click', function() {
+            // Сброс всех кнопок в шаге 1
+            document.querySelectorAll('.form-step[data-step="1"] .choice-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Выбор текущей кнопки
+            this.classList.add('selected');
+            document.getElementById('carType').value = this.dataset.value;
+            
+            // Активируем кнопку "Далее"
+            updateMainButton('Далее', true, true);
+        });
+    });
+    
+    // ----------------------------------------
+    // НАВИГАЦИЯ (MainButton)
+    // ----------------------------------------
+
+    // Обработчик нажатия главной кнопки Telegram
+    Telegram.MainButton.onClick(() => {
+        if (!checkStepValidity()) {
+            Telegram.showAlert('Пожалуйста, заполните поле перед продолжением.');
+            return;
+        }
+        
+        if (currentStep < totalSteps) {
+            currentStep++;
+            updateUI();
+            
+            // При переходе на новый шаг, фокусируемся на первом поле
+            const nextStepElement = document.querySelector(`.form-step[data-step="${currentStep}"]`);
+            const firstInput = nextStepElement.querySelector('input');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        } else {
+            submitForm();
+        }
+    });
+
+    // Добавляем обработчики для полей ввода для динамической проверки
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', () => {
+            updateMainButton(Telegram.MainButton.text, true, checkStepValidity());
+        });
+    });
+
+    // ----------------------------------------
+    // ОТПРАВКА ФОРМЫ
+    // ----------------------------------------
+
+    function submitForm() {
+        // Собираем все данные формы
+        const formData = {};
+        document.querySelectorAll('input').forEach(input => {
+            if (input.name && input.value) {
+                formData[input.name] = input.value;
+            }
+        });
+        
+        // Отправляем данные в бот
+        // Бот в app.py ждет этот JSON, который мы уже подготовили для обработки
+        try {
+            Telegram.sendData(JSON.stringify(formData));
+            Telegram.MainButton.hide();
+            Telegram.close();
+        } catch (error) {
+            Telegram.showAlert('Произошла ошибка при отправке данных: ' + error.message);
+        }
+    }
+
+    // Инициализация при загрузке
+    updateUI();
+</script>
+
+</body>
+</html>

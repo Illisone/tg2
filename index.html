@@ -1,58 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics PRO</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background: #0b0e14; color: white; font-family: sans-serif; padding: 20px; }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 20px;
-        }
-        .accent-text { color: #00d2ff; font-weight: bold; }
-        .pro-btn {
-            background: linear-gradient(90deg, #ffcc00, #ff9500);
-            color: black;
-            border: none;
-            width: 100%;
-            padding: 15px;
-            border-radius: 12px;
-            font-weight: bold;
-            box-shadow: 0 0 20px rgba(255, 204, 0, 0.4);
-        }
-        .feature-row { display: flex; justify-content: space-between; margin: 10px 0; font-size: 14px; }
+        body { background: #0f1218; color: white; font-family: 'Segoe UI', sans-serif; padding: 15px; }
+        .card { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; }
+        .title { color: #00d2ff; font-weight: bold; margin-bottom: 10px; }
+        .row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px; }
+        .pro-btn { background: linear-gradient(45deg, #ffcc00, #ff9500); border: none; width: 100%; padding: 12px; border-radius: 10px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        .channel-item { border-left: 3px solid #00d2ff; padding-left: 10px; margin: 10px 0; background: rgba(0,210,255,0.05); padding: 5px; }
     </style>
 </head>
 <body>
-    <div class="glass-card">
-        <h2>📊 Аналитика</h2>
-        <div class="feature-row"><span>Посты (неделя)</span> <span class="accent-text">14</span></div>
-        <div class="feature-row"><span>Охват</span> <span class="accent-text">2.4k</span></div>
+    <div class="card">
+        <div class="title">📡 ПОДКЛЮЧЕННЫЕ КАНАЛЫ</div>
+        <div class="channel-item">
+            <div class="row"><b>@my_channel</b> <span>1,240 сабов</span></div>
+            <div class="row"><small>Статус: Аналитика активна</small></div>
+        </div>
     </div>
 
-    <div class="glass-card">
-        <h3 style="color: #ffcc00;">👑 PRO Функции</h3>
-        <p style="font-size: 12px; opacity: 0.7;">Вам доступны:</p>
-        <ul style="font-size: 13px; padding-left: 20px;">
-            <li>Проверка подписки (ОП)</li>
-            <li>Авто-удаление постов</li>
-            <li>Аналитика кликов</li>
-        </ul>
-        <button class="pro-btn" onclick="sendBuyRequest()">Продлить PRO за 299₽</button>
+    <div class="card">
+        <div class="title">📈 AI-АНАЛИТИКА (ERR)</div>
+        <canvas id="chart" height="150"></canvas>
+        <div class="row"><span>Вовлеченность:</span> <span style="color:#00ff88">14.2% (Высокая)</span></div>
+        <div class="row"><span>Лучшее время:</span> <span>19:00 - 21:00</span></div>
+    </div>
+
+    <div class="card" style="border: 1px solid #ffcc0033;">
+        <div class="title" style="color:#ffcc00">💎 PRO ОТЧЕТЫ</div>
+        <p style="font-size: 12px; opacity: 0.8;">Создайте профессиональный PDF-отчет для рекламодателя с графиками и охватами.</p>
+        <button class="pro-btn" onclick="buyPro()">АКТИВИРОВАТЬ PRO</button>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-        function sendBuyRequest() {
+
+        function buyPro() {
             tg.sendData("buy_pro_request");
             tg.close();
         }
+
+        const ctx = document.getElementById('chart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+                datasets: [{
+                    label: 'Просмотры',
+                    data: [1200, 1900, 1500, 2100, 1800, 2400, 2100],
+                    borderColor: '#00d2ff',
+                    tension: 0.3,
+                    fill: false
+                }]
+            },
+            options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+        });
     </script>
 </body>
 </html>

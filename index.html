@@ -1,175 +1,58 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin PRO Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --bg-color: #0f0f13;
-            --card-bg: rgba(255, 255, 255, 0.05);
-            --accent-color: #00d2ff;
-            --gold-color: #ffcc00;
-            --text-color: #ffffff;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Inter', -apple-system, sans-serif;
-            margin: 0;
-            padding: 15px;
-            overflow-x: hidden;
-        }
-
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 25px;
-        }
-
-        .user-photo {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            border: 2px solid var(--accent-color);
-        }
-
-        .card {
-            background: var(--card-bg);
+        body { background: #0b0e14; color: white; font-family: sans-serif; padding: 20px; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px;
             padding: 20px;
-            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
         }
-
-        .pro-badge {
-            background: linear-gradient(45deg, #ffcc00, #ff9500);
-            color: #000;
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .stat-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            display: block;
-            color: var(--accent-color);
-        }
-
-        .stat-label {
-            font-size: 12px;
-            opacity: 0.6;
-        }
-
-        .btn-upgrade {
-            background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+        .accent-text { color: #00d2ff; font-weight: bold; }
+        .pro-btn {
+            background: linear-gradient(90deg, #ffcc00, #ff9500);
+            color: black;
             border: none;
-            color: white;
-            padding: 15px;
             width: 100%;
-            border-radius: 15px;
+            padding: 15px;
+            border-radius: 12px;
             font-weight: bold;
-            font-size: 16px;
-            margin-top: 20px;
-            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.4);
         }
-
-        canvas {
-            margin-top: 15px;
-        }
+        .feature-row { display: flex; justify-content: space-between; margin: 10px 0; font-size: 14px; }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <img id="user-avatar" class="user-photo" src="https://via.placeholder.com/45" alt="">
-        <div>
-            <div style="font-size: 18px; font-weight: bold;" id="user-name">Загрузка...</div>
-            <span class="pro-badge" id="user-status">Free Member</span>
-        </div>
+    <div class="glass-card">
+        <h2>📊 Аналитика</h2>
+        <div class="feature-row"><span>Посты (неделя)</span> <span class="accent-text">14</span></div>
+        <div class="feature-row"><span>Охват</span> <span class="accent-text">2.4k</span></div>
     </div>
 
-    <div class="card">
-        <div class="stat-grid">
-            <div class="stat-item">
-                <span class="stat-value" id="posts-count">24</span>
-                <span class="stat-label">Постов</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-value" id="clicks-count">1.2k</span>
-                <span class="stat-label">Кликов</span>
-            </div>
-        </div>
+    <div class="glass-card">
+        <h3 style="color: #ffcc00;">👑 PRO Функции</h3>
+        <p style="font-size: 12px; opacity: 0.7;">Вам доступны:</p>
+        <ul style="font-size: 13px; padding-left: 20px;">
+            <li>Проверка подписки (ОП)</li>
+            <li>Авто-удаление постов</li>
+            <li>Аналитика кликов</li>
+        </ul>
+        <button class="pro-btn" onclick="sendBuyRequest()">Продлить PRO за 299₽</button>
     </div>
-
-    <div class="card">
-        <div style="font-weight: bold; margin-bottom: 10px;">Активность за неделю</div>
-        <canvas id="activityChart"></canvas>
-    </div>
-
-    <button class="btn-upgrade" onclick="buyPro()">Активировать PRO за 299₽</button>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-        tg.headerColor = "#0f0f13";
-
-        // Получаем данные пользователя
-        const user = tg.initDataUnsafe.user;
-        if (user) {
-            document.getElementById('user-name').innerText = user.first_name;
-            if (user.photo_url) {
-                document.getElementById('user-avatar').src = user.photo_url;
-            }
-        }
-
-        function buyPro() {
-            tg.sendData("buy_pro_request"); // Отправляет сигнал боту
+        function sendBuyRequest() {
+            tg.sendData("buy_pro_request");
             tg.close();
         }
-
-        // Настройка графика
-        const ctx = document.getElementById('activityChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-                datasets: [{
-                    label: 'Посты',
-                    data: [2, 5, 3, 8, 4, 1, 6],
-                    borderColor: '#00d2ff',
-                    backgroundColor: 'rgba(0, 210, 255, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 0
-                }]
-            },
-            options: {
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { grid: { display: false }, ticks: { color: '#ffffff55' } },
-                    y: { display: false }
-                }
-            }
-        });
     </script>
 </body>
 </html>

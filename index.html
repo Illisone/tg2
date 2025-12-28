@@ -2,61 +2,95 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ShadowShare - Секретный доступ</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background: #05070a; color: #e2e8f0; font-family: 'Inter', sans-serif; padding: 20px; }
-        .ai-card { 
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: 1px solid #38bdf8; border-radius: 20px; padding: 20px;
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.2); margin-bottom: 20px;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; margin: 0; overflow: hidden;
         }
-        .btn-ai {
-            background: #38bdf8; color: #000; border: none; width: 100%;
-            padding: 15px; border-radius: 12px; font-weight: 800; cursor: pointer;
+        .container {
+            width: 90%; max-width: 400px; text-align: center;
+            padding: 20px; border: 1px solid #30363d; border-radius: 12px;
+            background: #161b22; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
         }
-        .stat-num { color: #38bdf8; font-size: 28px; font-weight: bold; }
+        .secret-content {
+            background: #000; color: #00ff41; padding: 15px;
+            border-radius: 8px; margin: 20px 0; font-family: monospace;
+            word-break: break-all; min-height: 50px;
+            filter: blur(10px); transition: filter 0.3s;
+        }
+        .secret-content.reveal { filter: blur(0); }
+        .timer { color: #f85149; font-weight: bold; font-size: 1.2em; }
+        .btn {
+            background: #238636; color: white; border: none;
+            padding: 12px 24px; border-radius: 6px; cursor: pointer;
+        }
+        .error { color: #f85149; }
     </style>
 </head>
 <body>
-    <div class="ai-card">
-        <h2 style="margin:0; color: #38bdf8;">🧠 AI STATUS</h2>
-        <p style="opacity: 0.7;">ИИ готов к генерации контента</p>
-        <div style="display: flex; justify-content: space-around; margin-top: 20px;">
-            <div style="text-align: center;">
-                <div class="stat-num">128</div>
-                <div style="font-size: 10px;">ПОСТОВ</div>
-            </div>
-            <div style="text-align: center;">
-                <div class="stat-num">98%</div>
-                <div style="font-size: 10px;">УНИКАЛЬНОСТЬ</div>
-            </div>
-        </div>
+    <div class="container" id="app">
+        <h2>🔒 ShadowShare</h2>
+        <p id="status">Загрузка защищенного канала...</p>
+        <div id="content-box" class="secret-content">Подержите палец здесь, чтобы прочитать</div>
+        <p id="timer-box"></p>
     </div>
-
-    <div class="ai-card">
-        <h3>📈 АНАЛИЗ РОСТА</h3>
-        <canvas id="chart"></canvas>
-    </div>
-
-    <button class="btn-ai" onclick="window.Telegram.WebApp.close()">ВЕРНУТЬСЯ В БОТА</button>
 
     <script>
-        window.Telegram.WebApp.expand();
-        const ctx = document.getElementById('chart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['1','2','3','4','5'],
-                datasets: [{
-                    data: [10, 25, 45, 30, 60],
-                    borderColor: '#38bdf8',
-                    tension: 0.4
-                }]
-            },
-            options: { plugins: { legend: { display: false } } }
-        });
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Развернуть на весь экран
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const API_URL = "https://твой-домен.com"; // ЗАМЕНИ НА СВОЙ URL FastAPI
+
+        async function loadSecret() {
+            try {
+                const response = await fetch(`${API_URL}/get_secret/${token}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('status').innerText = "Данные получены. У вас есть 15 секунд.";
+                    const box = document.getElementById('content-box');
+                    box.innerText = data.content;
+
+                    // Логика зажатия (защита от случайных глаз)
+                    box.onmousedown = box.ontouchstart = () => box.classList.add('reveal');
+                    box.onmouseup = box.ontouchend = () => box.classList.remove('reveal');
+
+                    startTimer(15);
+                } else {
+                    showError("Ссылка недействительна или уже уничтожена.");
+                }
+            } catch (e) {
+                showError("Ошибка связи с сервером безопасности.");
+            }
+        }
+
+        function startTimer(seconds) {
+            let timeLeft = seconds;
+            const timerBox = document.getElementById('timer-box');
+            const interval = setInterval(() => {
+                timeLeft--;
+                timerBox.innerText = `Самоуничтожение через: ${timeLeft}с`;
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    document.body.innerHTML = "<h1>🔥 ДАННЫЕ УНИЧТОЖЕНЫ</h1>";
+                    setTimeout(() => tg.close(), 2000);
+                }
+            }, 1000);
+        }
+
+        function showError(msg) {
+            document.getElementById('app').innerHTML = `<h2 class="error">❌ Ошибка</h2><p>${msg}</p>`;
+        }
+
+        if (token) loadSecret(); else showError("Токен не найден.");
     </script>
 </body>
 </html>

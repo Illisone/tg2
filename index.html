@@ -6,64 +6,54 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background: #0b0e14; color: white; font-family: sans-serif; padding: 15px; margin: 0; }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px; padding: 15px; margin-bottom: 15px;
+        body { background: #0b0e14; color: white; font-family: sans-serif; padding: 15px; }
+        .card { 
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 20px; padding: 20px; margin-bottom: 20px;
+            backdrop-filter: blur(10px);
         }
-        .accent { color: #00d2ff; font-weight: bold; }
-        .gold { color: #ffcc00; font-weight: bold; }
-        .btn-pro {
-            background: linear-gradient(90deg, #ffcc00, #ff9500);
-            border: none; width: 100%; padding: 12px; border-radius: 10px;
-            font-weight: bold; margin-top: 10px; cursor: pointer;
+        .btn { 
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5); color: white; 
+            border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold;
         }
+        .accent { color: #00d2ff; }
     </style>
 </head>
 <body>
-    <div class="glass-card">
-        <div class="gold">📈 ОБЩАЯ СТАТИСТИКА</div>
-        <canvas id="mainChart" height="150"></canvas>
+    <div class="card">
+        <h2 class="accent">📊 Аналитика</h2>
+        <canvas id="myChart" height="150"></canvas>
     </div>
 
-    <div class="glass-card">
-        <div class="accent">📡 ПОДКЛЮЧЕННЫЕ КАНАЛЫ</div>
-        <div id="channel-list" style="margin-top:10px; font-size: 14px; opacity: 0.8;">
-            Загрузка из базы бота...
-        </div>
-    </div>
-
-    <div class="glass-card">
-        <div class="gold">💎 PRO ОТЧЕТНОСТЬ</div>
-        <p style="font-size: 12px; opacity: 0.7;">Сгенерируйте медиа-кит для продажи рекламы в один клик.</p>
-        <button class="btn-pro" onclick="requestPro()">АКТИВИРОВАТЬ ОТЧЕТЫ</button>
+    <div class="card">
+        <h3>💰 PRO Возможности</h3>
+        <ul style="font-size: 14px; opacity: 0.8;">
+            <li>Отчеты для рекламодателей (PDF)</li>
+            <li>Анализ конкурентов в реальном времени</li>
+            <li>Умное время публикации</li>
+        </ul>
+        <button class="btn" onclick="tg.sendData('buy_pro')">АКТИВИРОВАТЬ ЗА 299₽</button>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-        tg.headerColor = "#0b0e14";
-
-        function requestPro() {
-            tg.sendData("buy_pro_request");
-            tg.close();
-        }
-
-        const ctx = document.getElementById('mainChart').getContext('2d');
+        
+        const ctx = document.getElementById('myChart').getContext('2d');
         new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
                 datasets: [{
-                    data: [400, 700, 550, 900, 800, 1200, 1100],
+                    label: 'Охват',
+                    data: [500, 800, 600, 1100, 950, 1300, 1200],
                     borderColor: '#00d2ff',
-                    backgroundColor: 'rgba(0, 210, 255, 0.1)',
+                    tension: 0.4,
                     fill: true,
-                    tension: 0.4
+                    backgroundColor: 'rgba(0, 210, 255, 0.1)'
                 }]
             },
-            options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+            options: { plugins: { legend: { display: false } } }
         });
     </script>
 </body>

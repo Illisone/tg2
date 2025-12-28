@@ -2,46 +2,64 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background: #0b0e14; color: #fff; font-family: -apple-system, sans-serif; padding: 15px; }
-        .card { background: rgba(255,255,255,0.05); border-radius: 18px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; backdrop-filter: blur(10px); }
-        .accent { color: #00d2ff; font-weight: bold; }
-        .btn { background: linear-gradient(90deg, #ffcc00, #ff9500); border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; color: #000; margin-top: 10px; }
-        h2 { font-size: 18px; margin-top: 0; }
+        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; padding: 20px; }
+        .card { background: #1e293b; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid #334155; }
+        .gradient-text { background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 22px; }
+        .btn-main { background: #3b82f6; border: none; color: white; width: 100%; padding: 15px; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .btn-main:active { transform: scale(0.98); }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat-item { background: #334155; padding: 15px; border-radius: 15px; text-align: center; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>🚀 Дашборд Аналитики</h2>
-        <canvas id="chart" height="150"></canvas>
+        <span class="gradient-text">ULTRA DASHBOARD</span>
+        <div style="margin-top: 15px;">
+            <canvas id="growthChart"></canvas>
+        </div>
+    </div>
+
+    <div class="stat-grid">
+        <div class="stat-item">
+            <div style="font-size: 12px; opacity: 0.7;">Заработок</div>
+            <div style="font-size: 18px; font-weight: 700;">450 ⭐</div>
+        </div>
+        <div class="stat-item">
+            <div style="font-size: 12px; opacity: 0.7;">Охват</div>
+            <div style="font-size: 18px; font-weight: 700;">+12.4%</div>
+        </div>
     </div>
 
     <div class="card">
-        <h2 class="accent">💎 ПРЕИМУЩЕСТВА PRO</h2>
-        <div style="font-size: 14px; opacity: 0.8;">
-            • Мониторинг конкурентов 24/7<br>
-            • Авто-водяные знаки без лимитов<br>
-            • Отчеты для рекламодателей в PDF
-        </div>
-        <button class="btn" onclick="tg.sendData('buy_pro')">АКТИВИРОВАТЬ PRO — 299₽</button>
+        <h3>💎 PRO План</h3>
+        <p style="font-size: 14px; opacity: 0.8; line-height: 1.5;">Разблокируйте AI-копирайтера, который пишет посты за вас, и систему шпионажа за 5 конкурентами одновременно.</p>
+        <button class="btn-main" onclick="buyPro()">Купить за 150 ⭐</button>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-        tg.headerColor = "#0b0e14";
+        tg.headerColor = '#0f172a';
 
-        new Chart(document.getElementById('chart'), {
+        function buyPro() {
+            tg.sendData("action_buy_pro");
+            tg.close();
+        }
+
+        const ctx = document.getElementById('growthChart').getContext('2d');
+        new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
                 datasets: [{
-                    data: [300, 450, 380, 600, 520, 800, 750],
-                    borderColor: '#00d2ff',
-                    backgroundColor: 'rgba(0, 210, 255, 0.1)',
+                    label: 'Просмотры',
+                    data: [1200, 1900, 3000, 5000, 4800, 7000, 8500],
+                    borderColor: '#38bdf8',
+                    backgroundColor: 'rgba(56, 189, 248, 0.1)',
                     fill: true,
                     tension: 0.4
                 }]

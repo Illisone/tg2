@@ -2,436 +2,174 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Бесплатный подбор авто</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin PRO Dashboard</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* ======================================= */
-        /* ГЛОБАЛЬНЫЕ ЦВЕТА И ПЕРЕМЕННЫЕ */
-        /* ======================================= */
         :root {
-            /* Базовые цвета вашего дизайна */
-            --main-bg: #151515; /* Темный фон */
-            --card-bg: #282828; /* Фон карточек */
-            --accent-color: #E74C3C; /* Ярко-красный акцент */
-            --text-color: #EAEAEA;
-            --hint-color: #AAAAAA;
-            --input-bg: #333333; /* Фон поля ввода */
+            --bg-color: #0f0f13;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --accent-color: #00d2ff;
+            --gold-color: #ffcc00;
+            --text-color: #ffffff;
         }
-        
-        /* Стили для тела и контейнера */
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', -apple-system, sans-serif;
             margin: 0;
-            padding: 0;
-            background-color: var(--main-bg); 
-            color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 0 20px;
-        }
-
-        /* ======================================= */
-        /* ШАПКА И ЛОГОТИП */
-        /* ======================================= */
-        .header {
-            text-align: center;
-            padding: 30px 0 20px;
-            background-color: #0D0D0D; /* Еще более темная полоса сверху */
-        }
-        
-        .logo-text {
-            color: var(--accent-color);
-            font-size: 1.5em;
-            font-weight: 700;
-            margin-top: 5px;
-            text-shadow: 0 0 5px rgba(231, 76, 60, 0.5); /* Небольшое свечение */
-        }
-        
-        .logo-car {
-            font-size: 4em; /* Иконка машины (можно заменить на <img>) */
-            line-height: 0.5;
-            color: var(--accent-color);
-        }
-
-        /* ======================================= */
-        /* КАРТОЧКИ И ПОЛЯ ВВОДА */
-        /* ======================================= */
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 20px; /* Сильное скругление */
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        h2 {
-            font-size: 1.3em;
-            font-weight: 600;
-            color: var(--text-color);
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
-        
-        .label {
-            display: block;
-            font-size: 0.9em;
-            color: var(--hint-color);
-            margin-bottom: 5px;
-        }
-
-        input[type="text"], input[type="tel"], input[type="number"] {
-            width: 100%;
-            padding: 15px 12px;
-            margin-top: 5px;
-            box-sizing: border-box;
-            border: 1px solid #444;
-            border-radius: 10px;
-            font-size: 1.1em;
-            background-color: var(--input-bg); 
-            color: var(--text-color);
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        
-        input:focus {
-            border-color: var(--accent-color);
-        }
-        
-        /* ======================================= */
-        /* КНОПКИ ВЫБОРА (ВМЕСТО ИНЛАЙН-КНОПОК) */
-        /* ======================================= */
-        .choice-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 3 колонки для кнопок года */
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .choice-button {
-            padding: 12px 10px;
-            border: 2px solid #444;
-            border-radius: 10px;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            font-size: 1em;
-            cursor: pointer;
-            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
-            text-align: center;
-        }
-
-        .choice-button.selected {
-            /* Градиент выбранной кнопки */
-            background: linear-gradient(145deg, #FF6F61, #E74C3C); 
-            color: #fff;
-            border-color: #FF6F61;
-            box-shadow: 0 0 10px rgba(231, 76, 60, 0.6);
-        }
-
-        .choice-button:not(.selected):hover {
-            border-color: var(--accent-color);
-        }
-        
-        /* ======================================= */
-        /* ИНДИКАТОР ШАГОВ (ТОЧКИ) */
-        /* ======================================= */
-        .step-indicator {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0 30px;
-        }
-        
-        .dot {
-            height: 10px;
-            width: 10px;
-            margin: 0 5px;
-            background-color: #555; /* Неактивная точка */
-            border-radius: 50%;
-            display: inline-block;
-            transition: background-color 0.3s;
-        }
-        
-        .dot.active {
-            background-color: var(--accent-color); /* Активная точка */
-        }
-        
-        /* ======================================= */
-        /* КНОПКИ НАЗАД/ДАЛЕЕ (Telegram MainButton) */
-        /* ======================================= */
-        /* Стиль MainButton управляется Telegram SDK, но мы можем его настроить: */
-        /* Акцентный цвет для MainButton будет взят из Telegram.themeParams.button_color */
-        
-        /* Стили для кнопок "назад" (для демонстрации) */
-        .navigation-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-            padding-bottom: 20px;
-        }
-        
-        #backButton {
-            width: 48%;
             padding: 15px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .user-photo {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-color);
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .pro-badge {
+            background: linear-gradient(45deg, #ffcc00, #ff9500);
+            color: #000;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            display: block;
+            color: var(--accent-color);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.6;
+        }
+
+        .btn-upgrade {
+            background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
             border: none;
-            border-radius: 12px;
-            font-size: 1.1em;
-            font-weight: 600;
-            background-color: #333;
-            color: #fff;
-            cursor: pointer;
-            display: none; /* Скрываем по умолчанию */
+            color: white;
+            padding: 15px;
+            width: 100%;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 16px;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+        }
+
+        canvas {
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="logo-car">🏎️</div> <div class="logo-text">ASIA EXPRESS AUTO</div>
-</div>
-
-<div class="container">
-    
-    <div class="step-indicator" id="stepIndicator">
+    <div class="header">
+        <img id="user-avatar" class="user-photo" src="https://via.placeholder.com/45" alt="">
+        <div>
+            <div style="font-size: 18px; font-weight: bold;" id="user-name">Загрузка...</div>
+            <span class="pro-badge" id="user-status">Free Member</span>
         </div>
-    
-    <form id="carForm">
-        <div class="card form-step" data-step="1">
-            <h2>1/5. Какой автомобиль Вас интересует?</h2>
-            <div class="choice-grid" style="grid-template-columns: repeat(2, 1fr);">
-                <button type="button" class="choice-button" data-value="Новый">🚗 Новый (из Китая)</button>
-                <button type="button" class="choice-button" data-value="С пробегом">⚙️ С пробегом</button>
-                <button type="button" class="choice-button" data-value="Неважно" style="grid-column: span 2;">🤷‍♀️ Неважно</button>
+    </div>
+
+    <div class="card">
+        <div class="stat-grid">
+            <div class="stat-item">
+                <span class="stat-value" id="posts-count">24</span>
+                <span class="stat-label">Постов</span>
             </div>
-            <input type="hidden" name="Тип авто" id="carType" required>
-        </div>
-
-        <div class="card form-step" data-step="2" style="display:none;">
-            <h2>2/5. Укажите марку и модель авто</h2>
-            <p class="label">Марка/Модель</p>
-            <input type="text" name="Марка/Модель" id="carModel" placeholder="Например: Toyota Camry, BYD Song Plus" required>
-        </div>
-
-        <div class="card form-step" data-step="3" style="display:none;">
-            <h2>3/5. Желаемый год выпуска</h2>
-            <p class="label">Год или диапазон</p>
-            <input type="text" name="Год выпуска" id="carYear" placeholder="Например: 2024-2025" required>
-            
-            <div class="choice-grid" id="yearButtons">
-                <button type="button" class="choice-button year-shortcut" data-value="2018">2018</button>
-                <button type="button" class="choice-button year-shortcut" data-value="2019">2019</button>
-                <button type="button" class="choice-button year-shortcut" data-value="2020">2020</button>
-                <button type="button" class="choice-button year-shortcut" data-value="2021">2021</button>
-                <button type="button" class="choice-button year-shortcut" data-value="2022">2022</button>
-                <button type="button" class="choice-button year-shortcut" data-value="2023">2023</button>
-                <button type="button" class="choice-button year-shortcut" data-value="2024">2024</button>
-                <button type="button" class="choice-button year-shortcut" data-value="2025">2025</button>
+            <div class="stat-item">
+                <span class="stat-value" id="clicks-count">1.2k</span>
+                <span class="stat-label">Кликов</span>
             </div>
         </div>
+    </div>
 
-        <div class="card form-step" data-step="4" style="display:none;">
-            <h2>4/5. Как Вас зовут?</h2>
-            <p class="label">Ваше Имя</p>
-            <input type="text" name="Имя" id="clientName" placeholder="Иван" required>
-        </div>
+    <div class="card">
+        <div style="font-weight: bold; margin-bottom: 10px;">Активность за неделю</div>
+        <canvas id="activityChart"></canvas>
+    </div>
 
-        <div class="card form-step" data-step="5" style="display:none;">
-            <h2>5/5. Ваш номер телефона</h2>
-            <p class="label">Телефон</p>
-            <input type="tel" name="Телефон" id="clientPhone" placeholder="+7 (___) ___-__-__" required>
-        </div>
-    </form>
-</div>
+    <button class="btn-upgrade" onclick="buyPro()">Активировать PRO за 299₽</button>
 
-<script>
-    // =======================================
-    // JAVASCRIPT ЛОГИКА ДЛЯ MINI APP
-    // =======================================
-    
-    const Telegram = window.Telegram.WebApp;
-    Telegram.ready();
-    Telegram.expand(); 
-    
-    const formSteps = document.querySelectorAll('.form-step');
-    const stepIndicator = document.getElementById('stepIndicator');
-    let currentStep = 1;
-    const totalSteps = formSteps.length;
-    
-    // Применяем цветовую схему Telegram к MainButton
-    if (Telegram.themeParams) {
-        // Мы используем свои стили, но MainButton должен быть красным
-        Telegram.MainButton.setParams({
-            color: '#E74C3C', // Красный для MainButton
-            text_color: '#FFFFFF'
-        });
-        
-        // Включаем кнопку НАЗАД в интерфейсе Telegram
-        Telegram.BackButton.show();
-        Telegram.BackButton.onClick(() => {
-            if (currentStep > 1) {
-                currentStep--;
-                updateUI();
-            } else {
-                Telegram.close(); // Закрываем, если это первый шаг
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.headerColor = "#0f0f13";
+
+        // Получаем данные пользователя
+        const user = tg.initDataUnsafe.user;
+        if (user) {
+            document.getElementById('user-name').innerText = user.first_name;
+            if (user.photo_url) {
+                document.getElementById('user-avatar').src = user.photo_url;
+            }
+        }
+
+        function buyPro() {
+            tg.sendData("buy_pro_request"); // Отправляет сигнал боту
+            tg.close();
+        }
+
+        // Настройка графика
+        const ctx = document.getElementById('activityChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+                datasets: [{
+                    label: 'Посты',
+                    data: [2, 5, 3, 8, 4, 1, 6],
+                    borderColor: '#00d2ff',
+                    backgroundColor: 'rgba(0, 210, 255, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#ffffff55' } },
+                    y: { display: false }
+                }
             }
         });
-    }
-
-    // ----------------------------------------
-    // УПРАВЛЕНИЕ UI
-    // ----------------------------------------
-
-    function updateMainButton(text, isVisible, isActive) {
-        // Добавляем градиентный стиль, как на вашем примере
-        Telegram.MainButton.setParams({
-            text: text,
-            is_visible: isVisible,
-            is_active: isActive
-        });
-    }
-
-    function updateStepDots() {
-        stepIndicator.innerHTML = '';
-        for (let i = 1; i <= totalSteps; i++) {
-            const dot = document.createElement('span');
-            dot.classList.add('dot');
-            if (i === currentStep) {
-                dot.classList.add('active');
-            }
-            stepIndicator.appendChild(dot);
-        }
-    }
-
-    function updateUI() {
-        // 1. Обновляем точки
-        updateStepDots();
-
-        // 2. Показываем/скрываем шаги
-        formSteps.forEach(step => {
-            const stepIndex = parseInt(step.dataset.step);
-            step.style.display = (stepIndex === currentStep) ? 'block' : 'none';
-        });
-        
-        // 3. Обновляем главную кнопку Telegram
-        const isLastStep = currentStep === totalSteps;
-        const buttonText = isLastStep ? '✅ Отправить заявку' : 'ДАЛЕЕ';
-        updateMainButton(buttonText, true, checkStepValidity());
-    }
-    
-    // ----------------------------------------
-    // ПРОВЕРКА ВАЛИДНОСТИ ТЕКУЩЕГО ШАГА
-    // ----------------------------------------
-
-    function checkStepValidity() {
-        switch (currentStep) {
-            case 1: 
-                return !!document.getElementById('carType').value;
-            case 2: 
-                return !!document.getElementById('carModel').value.trim();
-            case 3: 
-                return !!document.getElementById('carYear').value.trim();
-            case 4: 
-                return !!document.getElementById('clientName').value.trim();
-            case 5: 
-                // Минимальная проверка номера: не пустой и содержит минимум 5 символов
-                const phoneValue = document.getElementById('clientPhone').value.trim();
-                return phoneValue.length > 5;
-            default:
-                return false;
-        }
-    }
-    
-    // ----------------------------------------
-    // ОБРАБОТКА КНОПОК
-    // ----------------------------------------
-
-    // Шаг 1: Выбор типа авто
-    document.querySelectorAll('.form-step[data-step="1"] .choice-button').forEach(button => {
-        button.addEventListener('click', function() {
-            // Сброс всех кнопок в шаге 1
-            document.querySelectorAll('.form-step[data-step="1"] .choice-button').forEach(btn => btn.classList.remove('selected'));
-            this.classList.add('selected');
-            document.getElementById('carType').value = this.dataset.value;
-            updateMainButton('ДАЛЕЕ', true, true);
-        });
-    });
-
-    // Шаг 3: Выбор года (ярлыки)
-    document.querySelectorAll('.year-shortcut').forEach(button => {
-        button.addEventListener('click', function() {
-            // Сброс всех ярлыков
-             document.querySelectorAll('.year-shortcut').forEach(btn => btn.classList.remove('selected'));
-             this.classList.add('selected');
-             
-            // Устанавливаем значение в поле
-            document.getElementById('carYear').value = this.dataset.value;
-            updateMainButton(Telegram.MainButton.text, true, true);
-        });
-    });
-    
-    // ----------------------------------------
-    // НАВИГАЦИЯ (MainButton)
-    // ----------------------------------------
-
-    Telegram.MainButton.onClick(() => {
-        if (!checkStepValidity()) {
-            Telegram.showAlert('Пожалуйста, заполните или выберите нужный пункт.');
-            return;
-        }
-        
-        if (currentStep < totalSteps) {
-            currentStep++;
-            updateUI();
-            
-            // Фокусируемся на первом поле следующего шага
-            const nextStepElement = document.querySelector(`.form-step[data-step="${currentStep}"]`);
-            const firstInput = nextStepElement ? nextStepElement.querySelector('input') : null;
-            if (firstInput) {
-                firstInput.focus();
-            }
-        } else {
-            submitForm();
-        }
-    });
-
-    // Добавляем обработчики для полей ввода для динамической проверки и снятия выбора с ярлыков года
-    document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', () => {
-            // Если меняем поле Год выпуска, сбрасываем выбор с ярлыков
-            if (input.id === 'carYear') {
-                 document.querySelectorAll('.year-shortcut').forEach(btn => btn.classList.remove('selected'));
-            }
-            updateMainButton(Telegram.MainButton.text, true, checkStepValidity());
-        });
-    });
-    
-    // ----------------------------------------
-    // ОТПРАВКА ФОРМЫ
-    // ----------------------------------------
-
-    function submitForm() {
-        const formData = {};
-        document.querySelectorAll('input').forEach(input => {
-            if (input.name && input.value) {
-                formData[input.name] = input.value;
-            }
-        });
-        
-        try {
-            Telegram.sendData(JSON.stringify(formData));
-            Telegram.MainButton.hide();
-            // Telegram.close(); // Бот сам закроет окно после обработки
-        } catch (error) {
-            Telegram.showAlert('Произошла ошибка при отправке данных: ' + error.message);
-        }
-    }
-
-    // Инициализация при загрузке
-    updateUI();
-</script>
-
+    </script>
 </body>
 </html>

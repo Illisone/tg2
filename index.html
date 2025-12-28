@@ -3,94 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ShadowShare - Секретный доступ</title>
+    <title>SafeView - Private Content</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0d1117;
-            color: #c9d1d9;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100vh; margin: 0; overflow: hidden;
+            background: #09090b; color: #fafafa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex; align-items: center; justify-content: center;
+            height: 100vh; margin: 0; user-select: none; -webkit-user-select: none;
         }
-        .container {
-            width: 90%; max-width: 400px; text-align: center;
-            padding: 20px; border: 1px solid #30363d; border-radius: 12px;
-            background: #161b22; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        .card {
+            width: 85%; padding: 24px; border-radius: 16px;
+            background: #18181b; border: 1px solid #27272a; text-align: center;
         }
-        .secret-content {
-            background: #000; color: #00ff41; padding: 15px;
-            border-radius: 8px; margin: 20px 0; font-family: monospace;
-            word-break: break-all; min-height: 50px;
-            filter: blur(10px); transition: filter 0.3s;
+        .content-area {
+            background: #000; color: #22c55e; padding: 20px;
+            border-radius: 12px; margin: 20px 0; font-family: 'Courier New', monospace;
+            filter: blur(12px); transition: 0.3s; word-wrap: break-word;
         }
-        .secret-content.reveal { filter: blur(0); }
-        .timer { color: #f85149; font-weight: bold; font-size: 1.2em; }
-        .btn {
-            background: #238636; color: white; border: none;
-            padding: 12px 24px; border-radius: 6px; cursor: pointer;
-        }
-        .error { color: #f85149; }
+        .content-area.active { filter: blur(0); }
+        .hint { font-size: 0.8em; color: #71717a; }
+        #timer { color: #ef4444; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="container" id="app">
-        <h2>🔒 ShadowShare</h2>
-        <p id="status">Загрузка защищенного канала...</p>
-        <div id="content-box" class="secret-content">Подержите палец здесь, чтобы прочитать</div>
-        <p id="timer-box"></p>
+    <div class="card" id="main-card">
+        <h3>🔒 Защищенный просмотр</h3>
+        <p id="info">Загрузка...</p>
+        <div id="content" class="content-area">Зажмите для просмотра</div>
+        <p class="hint">Удерживайте палец на черном поле.<br>Данные будут стерты через <span id="timer">20</span>с.</p>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Развернуть на весь экран
+        tg.expand();
+        
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        // ЗАМЕНИ НА IP СВОЕГО ТАЙМВЕБА:
+        const API_URL = "http://ТВОЙ_IP_TIMEWEB:8000"; 
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        const API_URL = "https://твой-домен.com"; // ЗАМЕНИ НА СВОЙ URL FastAPI
-
-        async function loadSecret() {
+        async function init() {
             try {
-                const response = await fetch(`${API_URL}/get_secret/${token}`);
-                const data = await response.json();
+                const res = await fetch(`${API_URL}/get_secret/${token}`);
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                
+                const box = document.getElementById('content');
+                box.innerText = data.content;
+                document.getElementById('info').innerText = "Данные получены и стерты с сервера.";
+                
+                // Обработка касаний
+                const reveal = () => box.classList.add('active');
+                const hide = () => box.classList.remove('active');
+                box.addEventListener('touchstart', reveal);
+                box.addEventListener('touchend', hide);
+                box.addEventListener('mousedown', reveal);
+                box.addEventListener('mouseup', hide);
 
-                if (response.ok) {
-                    document.getElementById('status').innerText = "Данные получены. У вас есть 15 секунд.";
-                    const box = document.getElementById('content-box');
-                    box.innerText = data.content;
-
-                    // Логика зажатия (защита от случайных глаз)
-                    box.onmousedown = box.ontouchstart = () => box.classList.add('reveal');
-                    box.onmouseup = box.ontouchend = () => box.classList.remove('reveal');
-
-                    startTimer(15);
-                } else {
-                    showError("Ссылка недействительна или уже уничтожена.");
-                }
+                startCountdown(20);
             } catch (e) {
-                showError("Ошибка связи с сервером безопасности.");
+                document.getElementById('main-card').innerHTML = "<h3>❌ Ошибка</h3><p>Ссылка недействительна.</p>";
             }
         }
 
-        function startTimer(seconds) {
-            let timeLeft = seconds;
-            const timerBox = document.getElementById('timer-box');
-            const interval = setInterval(() => {
-                timeLeft--;
-                timerBox.innerText = `Самоуничтожение через: ${timeLeft}с`;
-                if (timeLeft <= 0) {
-                    clearInterval(interval);
-                    document.body.innerHTML = "<h1>🔥 ДАННЫЕ УНИЧТОЖЕНЫ</h1>";
-                    setTimeout(() => tg.close(), 2000);
+        function startCountdown(sec) {
+            let left = sec;
+            const el = document.getElementById('timer');
+            const itv = setInterval(() => {
+                left--;
+                el.innerText = left;
+                if(left <= 0) {
+                    clearInterval(itv);
+                    tg.close();
                 }
             }, 1000);
         }
 
-        function showError(msg) {
-            document.getElementById('app').innerHTML = `<h2 class="error">❌ Ошибка</h2><p>${msg}</p>`;
-        }
-
-        if (token) loadSecret(); else showError("Токен не найден.");
+        if(token) init();
     </script>
 </body>
 </html>
